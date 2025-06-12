@@ -51,6 +51,13 @@ TensorFlowを使用してGPUとCPUのパフォーマンスを比較するベン�
 - **ハードウェア**: 任意のCPU
 - **ソフトウェア**: Docker
 
+### Windows環境での実行
+- **CPU実行**: Windows PowerShell/コマンドプロンプトから直接実行可能
+- **GPU実行**: 
+  - NVIDIA GPU: WSL2環境内での実行を推奨
+  - ARM GPU (Qualcomm Adreno等): TensorFlow標準版では非対応
+  - 代替案: TensorFlow Liteの使用を推奨
+
 ## 🚀 セットアップ
 
 ### 1. リポジトリのクローン
@@ -209,6 +216,37 @@ Final Accuracy: 0.1063
 *実際の性能は使用するハードウェアにより大きく異なります*
 
 ## 🔧 トラブルシューティング
+
+### Windows GPU関連の問題
+
+#### 1. ARM系GPU（Qualcomm Adreno等）での実行
+Windows Surface等のARM系GPUは、TensorFlow標準版では対応していません。
+
+**現在の対応状況:**
+- ❌ TensorFlow GPU版: NVIDIA CUDA専用
+- ✅ TensorFlow CPU版: 正常動作
+- ✅ TensorFlow Lite: ARM GPU対応（部分的）
+
+**推奨解決方法:**
+```powershell
+# CPU環境での実行（現在の方法）
+docker run gpu-sample-app
+
+# 結果: CPU性能測定として有効
+```
+
+#### 2. NVIDIA GPU搭載Windowsマシンの場合
+```powershell
+# WSL2環境でのGPU実行
+wsl
+docker run --gpus all gpu-sample-app
+```
+
+#### 3. Windows環境での性能測定の価値
+ARM系CPUでの測定結果も有効なベンチマークです：
+- ARM系プロセッサーの性能測定
+- モバイル・エッジデバイスでの推論性能の参考
+- クラウド環境との性能比較
 
 ### GPU関連の問題
 

@@ -129,6 +129,65 @@ def matrix_operations_benchmark():
     
     return operation_time
 
+def check_gpu_delegates():
+    """利用可能なTensorFlow Liteデリゲートを確認"""
+    print("=== TensorFlow Lite Delegates Check ===")
+    print(f"TensorFlow version: {tf.__version__}")
+    
+    # 利用可能なデリゲートを確認
+    try:
+        # GPU Delegateの確認
+        gpu_delegate = tf.lite.experimental.load_delegate('libdelegate_gpu.so')
+        print("✅ GPU Delegate available")
+    except:
+        print("❌ GPU Delegate not available")
+    
+    try:
+        # NNAPI Delegateの確認（Android/ARM環境用）
+        nnapi_delegate = tf.lite.experimental.load_delegate('libnnapi_delegate.so')
+        print("✅ NNAPI Delegate available")
+    except:
+        print("❌ NNAPI Delegate not available")
+    
+    print()
+
+def tflite_benchmark():
+    """TensorFlow Liteでのベンチマーク"""
+    print("=== TensorFlow Lite Benchmark ===")
+    
+    # モデル作成
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(128, activation='relu', input_shape=(784,)),
+        tf.keras.layers.Dense(10, activation='softmax')
+    ])
+    
+    # TensorFlow Liteに変換
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tflite_model = converter.convert()
+    
+    # インタープリターを作成
+    interpreter = tf.lite.Interpreter(model_content=tflite_model)
+    interpreter.allocate_tensors()
+    
+    # 入力・出力の詳細を取得
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+    
+    # ベンチマーク実行
+    test_data = np.random.random((1, 784)).astype(np.float32)
+    
+    start_time = time.time()
+    for _ in range(1000):
+        interpreter.set_tensor(input_details[0]['index'], test_data)
+        interpreter.invoke()
+        output_data = interpreter.get_tensor(output_details[0]['index'])
+    end_time = time.time()
+    
+    avg_time = (end_time - start_time) / 1000
+    print(f"⏱️ Average inference time: {avg_time*1000:.3f} ms")
+    
+    return avg_time
+
 def main():
     """メイン処理"""
     print("🚀 GPU Sample Application Starting...")
@@ -166,3 +225,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    check_gpu_delegates()
+    tflite_benchmark()
